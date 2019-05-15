@@ -15,15 +15,10 @@ var connection = mysql.createConnection({
     database: "bamazon_db"
 });
 
-// let productArry = [];
-// let stockArry = [];
-// let priceArry = [];
-
 connection.connect(function (err) {
     if (err) {
         console.log("error! " + err);
         return;
-
     }
     console.log("Connection made! " + connection.threadId);
     items();
@@ -32,23 +27,12 @@ connection.connect(function (err) {
 function items() {
     connection.query('SELECT * FROM products', function (error, results) {
         if (error) throw error;
-        // console.log(results);
 
         for (var i = 0; i < results.length; i++) {
-            console.log("Item: " + results[i].item_id + " " + "$" + results[i].price + " " + results[i].product_name);
-            // console.log("Product Name: " + results[i].product_name);
-            // productArry.push(results[i].item_id + " " + results[i].product_name.split(","));
-            // stockArry.push(results[i].stock_quantity);
-            // priceArry.push(results[i].price);
-            // console.log(results[i].item_id + " " + results[i].product_name);
+            console.log("Item ID: " + results[i].item_id + " " + "$" + results[i].price + " " + results[i].product_name);
         }
-        // console.log("Products: " + productArry);
-        // console.log("Stock Quantities: " + stockArry);
-        // console.log("Prices: " + priceArry);
-
         buyItem();
 
-        // connection.end();
     });
 };
 
@@ -62,17 +46,19 @@ function buyItem() {
         type: "input",
         message: "How many would you like to buy?"
     }]).then(answer => {
-        connection.query("SELECT * FROM products", function (err, result) {
+        connection.query('SELECT * FROM products', function (err, results) {
             if (err) throw err;
 
-            var chosenItem;
-            for (var i = 0; i < result.length; i++) {
-                if (result[i].item_id === parseInt(answer.itemId)) {
-                    chosenItem = result[i];
+            let chosenItem;
+            for (var i = 0; i < results.length; i++) {
+
+                if (results[i].item_id === parseInt(answer.id)) {
+                    chosenItem = results[i];
                 }
             }
 
             if (chosenItem.stock_quantity > parseInt(answer.quantity)) {
+
                 connection.query("UPDATE products SET ? WHERE ?", [
                     {
                         stock_quantity: (chosenItem.stock_quantity - parseInt(answer.quantity))
@@ -88,6 +74,7 @@ function buyItem() {
             } else {
                 console.log("We're sorry, we don't have enough of that in stock right now.");
             }
+            connection.end();
         });
     });
 };
